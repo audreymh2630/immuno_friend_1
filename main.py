@@ -8,20 +8,19 @@ hide_debug_information()
 set_website_title("Your Drafter Website")
 set_website_framed(False)
 
-
-@dataclass
-class State:
-    treatment_groups:int
-    data_points:int
-    goal:str
-    stain_molecules: list[Structure]
-    
 @dataclass
 class Structure:
     structure_name:str
     staining_molecule:str
     ratio:int
     checked:bool
+    
+@dataclass
+class State:
+    treatment_groups:int
+    data_points:int
+    goal:str
+    stain_molecules: list[Structure]
 
 @route
 def index(state: State) -> Page:
