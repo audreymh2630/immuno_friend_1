@@ -74,6 +74,7 @@ def next_to_second_inputs(state:State,user_groups:str,user_points:str)-> Page:
 
 @route
 def next_to_results(state:State,user_goal:str,check_nucleus:bool,check_f_actin:bool,check_g_actin:bool,check_yap_taz:bool)-> Page:
+    #add checked molecules to state.stain_molecules
     state.goal=user_goal
     if check_nucleus:
         state.stain_molecules.append(nucleus)
@@ -83,23 +84,49 @@ def next_to_results(state:State,user_goal:str,check_nucleus:bool,check_f_actin:b
         state.stain_molecules.append(g_actin)
     if check_yap_taz:
         state.stain_molecules.append(yap_taz)
+    #iterate through the molecules in state.stain_molecules to create variables for all needed sections of the Structures
+    #for molecule in state.stain_molecules:
+        #if molecule==nucleus:
+            #check_nucleus=True
+        #elif molecule==f_actin:
+            #check_f_actin=True
+        #elif molecule==g_actin:
+            #check_g_actin=True
+        #elif molecule==yap_taz:
+            #check_yap_taz=True
+    #Modify a statement based on the goal
+    if state.goal== "Find the percentage of a molecule that is in the nucleus":
+        quant_2_statement= "in the nucleus vs. the cytoplasm"
+        quant_4_statement= "nuclear/cytoplasmic integrated densities"
+    elif state.goal== "Find the ratio of G-actin to F-actin in the cell":
+        quant_2_statement="compared to the integrated density of ____ fluorescence"
+        quant_4_statement="F-actin/G-actin integrated densities"
+    #calculate quantities based on user goals for number of treatment groups and number of data points per group
+    groups=state.treatment_groups
+    points_per_group=state.data_points
+    total_points=groups*points_per_group
+    images_per_group=points_per_group//5
+    images_per_dish=3
+    dishes_per_group=images_per_group//images_per_dish
+    dishes_needed=dishes_per_group*groups
+    batches=3
+    dishes_per_batch=dishes_needed//3
     return Page(state, [
         """
         Materials:
         
-         - _____ chondrocytes
-         - _____ individual glass dishes
+         - _____ extracted chondrocytes
+         - """ +str(dishes_needed)+ """ individual glass dishes
          - _____ Permblock
          - _____ ___(structure1 primary antibody)___
          - Refrigerator with controlled temperature down to 4 ℃
-         - _____ ___(structure1 secondary antibody)
-         - _____ ___(structure2 secondary antibody)
-         - _____ ___(structure3 secondary antibody)
-         - _____ ___(structure4 secondary antibody)__
+         - _____ """+state.stain_molecules[0].staining_molecule+"""
+         - _____ """+state.stain_molecules[1].staining_molecule+"""
+         - _____ """+state.stain_molecules[2].staining_molecule+"""
          - _____ PBS
-         - Aluminum foil container big enough to hold ____ dishes of cells
+         - Aluminum foil container big enough to hold"""+str(dishes_per_group)+"""dishes of cells
          - _____ Drop-n-Stain
-         - _____ glass slides
+         - """+str(dishes_needed)+""" glass slides
          - Confocal microscope
          - Computer that works with confocal microscope
 
@@ -110,29 +137,30 @@ def next_to_results(state:State,user_goal:str,check_nucleus:bool,check_f_actin:b
          1. Wash cultured chondrocytes with PBS and treat with Permblock for 15 minutes.
          2. Stain the chondrocytes with 200uL of primary antibody solution containing Permblock and a 1:___ ratio of ____(molecule)___ primary antibody (omit antibody if not staining for a specific molecule like YAP/TAZ?)
          3. Refrigerate the cells at 4 ℃ overnight.
-         4. In the morning, make your secondary staining solution. Add Permblock and your secondary staining molecules at the proper ratios. For your experiment, this includes a 1:___ ratio of ______ to stain the ______, a 1:___ ratio of _________ to stain the _______, a 1:___ ratio of _________ to stain the _______, and a 1:___ ratio of _________ to stain the _______.
+         4. In the morning, make your secondary staining solution. Add Permblock and your secondary staining molecules at the proper ratios. For your experiment, this includes a 1:"""+str(state.stain_molecules[0].ratio)+""" ratio of """+state.stain_molecules[0].staining_molecule+""" to stain the """+state.stain_molecules[0].molecule_name+""",
+            a 1:"""+str(state.stain_molecules[1].ratio)+""" ratio of """+state.stain_molecules[1].staining_molecule+""" to stain the """+state.stain_molecules[1].molecule_name+""", and a 1:"""+str(state.stain_molecules[2].ratio)+""" ratio of """+state.stain_molecules[2].staining_molecule+""" to stain the """+state.stain_molecules[2].molecule_name+""".
          5. Wash the cells with PBS, and treat them with 200uL of the secondary staining solution that you made in step 4. Make sure to treat one dish with secondary stains but no primary antibodies. This allows you to identify non-specific binding. 
          6. Place the chondrocytes in a dark foil container for 1 hour at room temperature.
          7. Wash the chondrocytes with PBS. 
          8. Cover the cells on each dish with 1 drop of Drop-n-Stain and a glass slide.
          9. Refrigerate the cells in the dark at 4 ℃ until imaging.
-         10. Repeat steps 1-9 with __ more rounds of cells. It is recommended to perform the confocal microscopy (procedure below) for each batch of cells before staining the next batch of cells.
+         10. Repeat steps 1-9 with"""+str(batches-1)+""" more rounds of cells. It is recommended to perform the confocal microscopy (procedure below) for each batch of cells before staining the next batch of cells.
 
         Confocal Microscopy (Imaging)
          1. Make sure your confocal microscope ((LSM880) Airyscan Confocal Microscope recommended) and computer are turned on and calibrated. 
          2. Change the settings to take images of the cells at a 63× objective with a 1024 × 1024 pixel size
-         3. Take __ images from varying locations in each dish.
+         3. Take 3 images from varying locations in each dish.
          4. Repeat steps 1-3 with the cells from each of your stain batches as you prepare them.
 
         Data Analysis
             Qualitative analysis:
              1. Choose 1 high-quality image from each treatment group (including the control) that visually represents the entire group.
-             2. Display and describe the representative images next to each other to visually demonstrate the changes that have or have not occurred in molecule (concentration or location).
+             2. Display and describe the representative images next to each other to visually demonstrate the changes that have or have not occurred in molecule concentration or location.
             Quantitative analysis:
              1. Download the data analysis program FIJI.
-             2. Use FIJI to find the integrated density of _____ fluorescence (in the nucleus vs. the cytoplasm or compared to the integrated density of ____ fluorescence). 
+             2. Use FIJI to find the integrated density of _____ fluorescence """+quant_2_statement+""". 
              3. In a spreadsheet program, normalize your fluorescence values to the average of the control values.
-             4. Using a graphing program (Prism or JMP recommended), create a graph (One-Way ANOVA recommended) comparing your treatment groups (on the x-axis) to their corresponding normalized values of (nuclear/cytoplasmic integrated densities or F-actin/G-actin integrated densities)
+             4. Using a graphing program (Prism or JMP recommended), create a graph (One-Way ANOVA recommended) comparing your treatment groups (on the x-axis) to their corresponding normalized values of"""+quant_4_statement+"""
         """,
         "\n",
         Button("BACK","back_to_second_inputs"),
